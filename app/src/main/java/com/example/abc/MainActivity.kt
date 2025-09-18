@@ -1,47 +1,54 @@
 package com.example.abc
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.webkit.WebChromeClient
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.abc.ui.theme.ABCTheme
+import androidx.activity.OnBackPressedCallback
 
 class MainActivity : ComponentActivity() {
+    
+    private lateinit var webView: WebView
+    
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            ABCTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+        
+        webView = WebView(this)
+        setContentView(webView)
+        
+        // WebView 설정
+        webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            allowFileAccess = true
+            allowContentAccess = true
+            setSupportZoom(true)
+            builtInZoomControls = true
+            displayZoomControls = false
+        }
+        
+        // WebViewClient 설정
+        webView.webViewClient = WebViewClient()
+        webView.webChromeClient = WebChromeClient()
+        
+        // JavaScript Interface 추가
+        webView.addJavascriptInterface(WebInterface(this, webView), "AndroidInterface")
+        
+        // assets의 index.html 로드
+        webView.loadUrl("file:///android_asset/index.html")
+        
+        // 뒤로가기 버튼 처리
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack()
+                } else {
+                    finish()
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ABCTheme {
-        Greeting("Android")
+        })
     }
 }

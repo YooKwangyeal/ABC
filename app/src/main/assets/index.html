@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>WebApp Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 WebApp 테스트</h1>
+
+      <h3>로컬 저장소 테스트</h3>
+      <button onclick="save()">📝 데이터 저장</button>
+      <button onclick="load()">📖 데이터 불러오기</button>
+
+      <h3>HTTP 요청 테스트</h3>
+      <button onclick="callPostAPI()">POST 요청</button>
+      <button onclick="callGetAPI()">GET 요청</button>
+
+      <div
+        id="result"
+        style="
+          margin-top: 20px;
+          padding: 10px;
+          background-color: #f8f9fa;
+          border-radius: 5px;
+        "
+      ></div>
+    </div>
+
+    <script>
+      function save() {
+        AndroidInterface.saveData("name", "홍길동");
+        AndroidInterface.saveData("age", "25");
+        showResult("✅ 데이터가 저장되었습니다!");
+      }
+
+      function load() {
+        const name = AndroidInterface.loadData("name");
+        const age = AndroidInterface.loadData("age");
+        showResult(`📖 불러온 데이터:<br>이름: ${name}<br>나이: ${age}`);
+      }
+
+      function callPostAPI() {
+        const json = JSON.stringify({
+          question: "안녕하세요!",
+          timestamp: new Date().toISOString(),
+        });
+        AndroidInterface.postRequest(
+          "http://10.0.2.2:8000/ask",
+          json,
+          "onPostResult"
+        );
+        showResult("📡 POST 요청을 보내는 중...");
+      }
+
+      function callGetAPI() {
+        AndroidInterface.getRequest(
+          "http://10.0.2.2:8000/status",
+          "onGetResult"
+        );
+        showResult("📡 GET 요청을 보내는 중...");
+      }
+
+      function onPostResult(response) {
+        showResult(`📬 POST 응답:<br>${response}`);
+      }
+
+      function onGetResult(response) {
+        showResult(`📬 GET 응답:<br>${response}`);
+      }
+
+      function showResult(message) {
+        document.getElementById("result").innerHTML = message;
+      }
+    </script>
+  </body>
+</html>
