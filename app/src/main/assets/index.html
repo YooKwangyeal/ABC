@@ -2,22 +2,24 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <title>WebApp Test</title>
+    <title>개인 정보 AI 어시스턴트</title>
     <style>
       body {
         font-family: Arial, sans-serif;
         padding: 20px;
         background-color: #f5f5f5;
+        margin: 0;
       }
       button {
         background-color: #007bff;
         color: white;
         border: none;
-        padding: 10px 20px;
-        margin: 10px;
+        padding: 12px 24px;
+        margin: 10px 0;
         border-radius: 5px;
         cursor: pointer;
         font-size: 16px;
+        width: 100%;
       }
       button:hover {
         background-color: #0056b3;
@@ -26,80 +28,158 @@
         max-width: 600px;
         margin: 0 auto;
         background-color: white;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+      .section {
+        margin-bottom: 30px;
         padding: 20px;
+        border: 1px solid #ddd;
         border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        background-color: #f8f9fa;
+      }
+      textarea {
+        width: 100%;
+        padding: 15px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      #result {
+        margin-top: 20px;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #007bff;
+        min-height: 80px;
+        white-space: pre-wrap;
+        font-size: 14px;
+        line-height: 1.6;
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      h3 {
+        color: #555;
+        margin-bottom: 15px;
+      }
+      .example {
+        font-size: 12px;
+        color: #666;
+        font-style: italic;
+        margin-top: 5px;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <h1>🚀 WebApp 테스트</h1>
+      <h1>ABC</h1>
 
-      <h3>로컬 저장소 테스트</h3>
-      <button onclick="save()">📝 데이터 저장</button>
-      <button onclick="load()">📖 데이터 불러오기</button>
+      <!-- 개인정보 섹션 -->
+      <div class="section">
+        <h3>👤 정보 입력</h3>
+        <textarea
+          id="personalInfo"
+          rows="6"
+          placeholder="자유롭게 본인에 대한 정보를 입력해주세요..."
+        ></textarea>
+        <div class="example">
+          예시: "나는 26세 홍길동이고 축구를 좋아하는 초등학교 선생님입니다.
+          서울에 살고 있으며 취미는 독서와 영화 감상입니다."
+        </div>
+        <button onclick="savePersonalInfo()">💾 내 정보 저장</button>
+        <button onclick="loadPersonalInfo()">📖 저장된 정보 확인</button>
+      </div>
 
-      <h3>HTTP 요청 테스트</h3>
-      <button onclick="callPostAPI()">POST 요청</button>
-      <button onclick="callGetAPI()">GET 요청</button>
+      <!-- AI 질문 섹션 -->
+      <div class="section">
+        <h3>🎯 정보에 대해 질문하기</h3>
+        <textarea
+          id="question"
+          rows="3"
+          placeholder="저장된 정보에 대해 질문해보세요..."
+        ></textarea>
+        <div class="example">
+          예시: "나이는?", "직업은 뭐야?", "좋아하는 취미는?", "사는 곳은?"
+        </div>
+        <button onclick="askAboutMe()">🚀 질문하기</button>
+      </div>
 
-      <div
-        id="result"
-        style="
-          margin-top: 20px;
-          padding: 10px;
-          background-color: #f8f9fa;
-          border-radius: 5px;
-        "
-      ></div>
+      <div id="result">여기에 결과가 표시됩니다...</div>
     </div>
 
     <script>
-      function save() {
-        AndroidInterface.saveData("name", "홍길동");
-        AndroidInterface.saveData("age", "25");
-        showResult("✅ 데이터가 저장되었습니다!");
-      }
+      // 개인정보 관련 함수들
+      function savePersonalInfo() {
+        const personalInfo = document
+          .getElementById("personalInfo")
+          .value.trim();
 
-      function load() {
-        const name = AndroidInterface.loadData("name");
-        const age = AndroidInterface.loadData("age");
-        showResult(`📖 불러온 데이터:<br>이름: ${name}<br>나이: ${age}`);
-      }
+        if (!personalInfo) {
+          showResult("❌ 개인정보를 입력해주세요!");
+          return;
+        }
 
-      function callPostAPI() {
-        const json = JSON.stringify({
-          question: "안녕하세요!",
+        const data = {
+          personalInfo: personalInfo,
           timestamp: new Date().toISOString(),
-        });
-        AndroidInterface.postRequest(
-          "http://10.0.2.2:8000/ask",
-          json,
-          "onPostResult"
+        };
+
+        AndroidInterface.saveProfile(JSON.stringify(data));
+        showResult(
+          "✅ 개인정보가 저장되었습니다!\n\n저장된 내용:\n" + personalInfo
         );
-        showResult("📡 POST 요청을 보내는 중...");
       }
 
-      function callGetAPI() {
-        AndroidInterface.getRequest(
-          "http://10.0.2.2:8000/status",
-          "onGetResult"
-        );
-        showResult("📡 GET 요청을 보내는 중...");
+      function loadPersonalInfo() {
+        const profileJson = AndroidInterface.getProfile();
+        if (profileJson) {
+          try {
+            const data = JSON.parse(profileJson);
+            document.getElementById("personalInfo").value =
+              data.personalInfo || "";
+            showResult(
+              "📖 저장된 개인정보를 불러왔습니다!\n\n" +
+                (data.personalInfo || "저장된 정보가 없습니다.")
+            );
+          } catch (e) {
+            showResult("❌ 저장된 데이터를 불러올 수 없습니다: " + e.message);
+          }
+        } else {
+          showResult("❌ 저장된 개인정보가 없습니다.");
+        }
       }
 
-      function onPostResult(response) {
-        showResult(`📬 POST 응답:<br>${response}`);
+      function askAboutMe() {
+        const question = document.getElementById("question").value.trim();
+        if (!question) {
+          showResult("❌ 질문을 입력해주세요!");
+          return;
+        }
+
+        showResult("🤔 AI가 당신의 정보를 검색하고 있습니다...");
+        AndroidInterface.askQuestion(question);
       }
 
-      function onGetResult(response) {
-        showResult(`📬 GET 응답:<br>${response}`);
+      // AI 응답을 받는 콜백 함수
+      function showResponse(response) {
+        showResult("🤖 AI 답변:\n\n" + response);
       }
 
       function showResult(message) {
-        document.getElementById("result").innerHTML = message;
+        document.getElementById("result").textContent = message;
       }
+
+      // 페이지 로드시 저장된 정보 자동 로드
+      window.onload = function () {
+        setTimeout(loadPersonalInfo, 100);
+      };
     </script>
   </body>
 </html>
